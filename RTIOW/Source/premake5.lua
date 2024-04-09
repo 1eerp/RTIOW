@@ -1,4 +1,5 @@
 project "RTIOW"
+	debugdir "%{tempPath}"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++20"
@@ -14,8 +15,9 @@ project "RTIOW"
 
 	includedirs
 	{
+		"%{IncludeDir.glm}",
 	}
-
+	
 	filter "system:windows"
 		systemversion "latest"
 		

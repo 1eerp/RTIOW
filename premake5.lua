@@ -16,10 +16,11 @@ BinDir = tempPath .. "Build/Bin/" .. OutDir
 IntDir = tempPath .. "Build/Intermediates/" .. OutDir
 
 -- EXTERNAL DEPENCENCIES DIR
-ExtDep = "ED"
+ExtDep = tempPath .. "ED"
 
 -- INCLUDE DIRECTORIES
 IncludeDir = {}
+IncludeDir["glm"] = "%{ExtDep}/glm/"
 
 group "Apps"
 	include "RTIOW/Source"
