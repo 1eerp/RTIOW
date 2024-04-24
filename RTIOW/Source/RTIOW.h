@@ -5,5 +5,6 @@
 #include "Hittable.h"
 #include "Sphere.h"
 
-// IMAGE 
+// CAMERA/IMAGE 
+#include "Camera.h"
 #include "ImageWriter.h"

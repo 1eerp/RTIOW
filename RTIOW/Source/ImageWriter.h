@@ -11,8 +11,13 @@ public:
 	~ImageWriter();
 
 	void Push(const glm::uvec3& color);
+	unsigned short GetHeight() const { return m_height; }
+	unsigned short GetWidth() const { return m_width; }
 
-public:
+private:
 	std::string filePath;
 	std::ofstream file;
+
+	unsigned short m_width;
+	unsigned short m_height;
 };
