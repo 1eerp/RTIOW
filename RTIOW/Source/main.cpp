@@ -5,9 +5,20 @@
 #include "ImageWriter.h"
 #include "Ray.h"
 
-glm::vec3 ray_color(const Ray& r) {
-	glm::vec3 unit_direction = glm::normalize(r.Direction());
-	auto a = 0.5f * (unit_direction.y + 1.0f);
+bool hitSphere(const glm::vec3& center, double radius, const Ray& ray) {
+	glm::vec3 oc = center - ray.Origin();
+	float a = glm::dot(ray.Direction(), ray.Direction());
+	float b = -2.0 * glm::dot(ray.Direction(), oc);
+	float c = glm::dot(oc, oc) - radius * radius;
+	auto discriminant = b * b - 4 * a * c;
+	return (discriminant >= 0);
+}
+
+glm::vec3 rayColor(const Ray& r) {
+	if (hitSphere({ 0, 0, 1 }, 0.5, r))
+		return { 1, 0, 0 };
+	glm::vec3 unitDirection = glm::normalize(r.Direction());
+	float a = 0.5f * (unitDirection.y + 1.0f);
 	return (1.0f - a) * glm::vec3(1.0, 1.0, 1.0) + a * glm::vec3(0.5, 0.7, 1.0);
 }
 
@@ -48,7 +59,7 @@ int main()
 			glm::vec3 currentPixel = topLeftPixelCenter + (static_cast<float>(j) * deltaY) + (static_cast<float>(i) * deltaX);
 			Ray ray(cameraOrigin, glm::normalize(currentPixel - cameraOrigin));
 
-			glm::vec3 test = ray_color(ray);
+			glm::vec3 test = rayColor(ray);
 
 			glm::uvec3 color = {static_cast<unsigned int>(255.999 * test.r), static_cast<unsigned int>(255.999 * test.g), static_cast<unsigned int>(255.999 * test.b)};
 
