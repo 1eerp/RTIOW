@@ -91,12 +91,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Hittable.h" />
     <ClInclude Include="ImageWriter.h" />
+    <ClInclude Include="Interval.h" />
     <ClInclude Include="Ray.h" />
+    <ClInclude Include="RTIOW.h" />
+    <ClInclude Include="RTIOWHelper.h" />
+    <ClInclude Include="Sphere.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ImageWriter.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Sphere.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
