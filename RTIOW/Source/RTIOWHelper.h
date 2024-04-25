@@ -23,3 +23,14 @@ constexpr Ref<T> MakeRef(Args&& ... args)
 
 // CONSTANTS
 const float PI = 3.1415926f;
+
+// UTILITY FUNCTIONS
+inline float clamp(float x, float min, float max)
+{
+	if (x < min) return min;
+	if (x > max) return max;
+	return x;
+}
+
+// UTILITY CLASSES
+#include "PRNG.h"

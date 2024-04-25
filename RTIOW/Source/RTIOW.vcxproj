@@ -95,6 +95,7 @@
     <ClInclude Include="Hittable.h" />
     <ClInclude Include="ImageWriter.h" />
     <ClInclude Include="Interval.h" />
+    <ClInclude Include="PRNG.h" />
     <ClInclude Include="Ray.h" />
     <ClInclude Include="RTIOW.h" />
     <ClInclude Include="RTIOWHelper.h" />
@@ -104,6 +105,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="ImageWriter.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="PRNG.cpp" />
     <ClCompile Include="Sphere.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

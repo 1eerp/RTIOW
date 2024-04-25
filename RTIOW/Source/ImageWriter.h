@@ -7,10 +7,12 @@
 class ImageWriter
 {
 public:
-	ImageWriter(std::string path, unsigned int width, unsigned int height);
+	ImageWriter(std::string path, unsigned short width, unsigned short height);
 	~ImageWriter();
 
 	void Push(const glm::uvec3& color);
+	void Push(const glm::vec3& color);
+
 	unsigned short GetHeight() const { return m_height; }
 	unsigned short GetWidth() const { return m_width; }
 

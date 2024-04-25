@@ -1,10 +1,17 @@
 #include <iostream>
 #include "Camera.h"
 
-Camera::Camera(const Ref<ImageWriter> writer, glm::vec3 position, glm::vec3 direction, float filmHeight, float focalLength)
-	: m_imageWriter(writer), m_aspectRatio(static_cast<float>(writer->GetWidth()) / writer->GetHeight()), m_filmHeight(filmHeight), m_filmWidth(m_filmHeight * m_aspectRatio), m_focalLength(focalLength), m_position(position), m_direction(direction)
+Camera::Camera(const Ref<ImageWriter> writer, glm::vec3 position, glm::vec3 direction, unsigned short sampleCount, float filmHeight, float focalLength)
+	: m_imageWriter(writer), m_sampleCount(sampleCount), m_aspectRatio(static_cast<float>(writer->GetWidth()) / writer->GetHeight()), m_filmHeight(filmHeight), m_filmWidth(m_filmHeight * m_aspectRatio), m_focalLength(focalLength), m_position(position), m_direction(direction)
 {}
 
+Ray Camera::CreateRay(unsigned short i, unsigned short j, glm::vec3& topLeftPixelCenter, glm::vec3& deltaX, glm::vec3 deltaY)
+{
+	// Calculate Randomized position inside of Pixel Square
+	glm::vec3 currentPixelPosition = topLeftPixelCenter + ((static_cast<float>(j) + PRNG::Float() - 0.5f) * deltaY) + ((static_cast<float>(i) + PRNG::Float() - 0.5f) * deltaX);
+
+	return Ray(m_position, glm::normalize(currentPixelPosition - m_position));
+}
 
 glm::vec3 Camera::ColorRay(const Ray& ray, const Hittable& world)
 {
@@ -34,22 +41,38 @@ void Camera::Render(const Hittable& world)
 	// Position of the center of the Top Left Pixel
 	glm::vec3 topLeftPixelCenter = m_position + (m_direction * m_focalLength) - (viewportRight / 2.f) - (viewportDown / 2.f) + (deltaX / 2.f) + (deltaY / 2.f);
 
-	std::cout << std::fixed << std::cout.precision(3);
+	// Weight of each sample holds
+	float pixelSampleScale = 1.f / m_sampleCount;
+
+	std::cout << std::fixed;
+	std::cout.precision(3);
+	std::cout << "Rendering...\n";
 
 	// Render
 	for (int j = 0; j < imageHeight; ++j) {
+		// PROGRESS INDICATOR 
 		std::cout << "PROGRESS: " << static_cast<float>(1 + j) / imageHeight * 100.f << "%\n";
-		for (int i = 0; i < imageWidth; ++i) {
-			// Calculate Color
-			glm::vec3 currentPixel = topLeftPixelCenter + (static_cast<float>(j) * deltaY) + (static_cast<float>(i) * deltaX);
-			Ray ray(m_position, glm::normalize(currentPixel - m_position));
 
-			glm::vec3 unitRGB = ColorRay(ray, world);
-			
-			glm::uvec3 color = { static_cast<unsigned int>(255.999 * unitRGB.r), static_cast<unsigned int>(255.999 * unitRGB.g), static_cast<unsigned int>(255.999 * unitRGB.b) };
+		for (int i = 0; i < imageWidth; ++i) {
+			// Initialize accumulator for current pixel
+			glm::vec3 acUnitRGB(0.f);
+
+			for (int sampleIndex = 0; sampleIndex < m_sampleCount; sampleIndex++)
+			{
+				// Update Seed
+				PRNG::UpdateSeed(j * imageWidth * m_sampleCount + i * m_sampleCount + sampleIndex);
+
+				// Create Ray
+				Ray ray = CreateRay(i, j, topLeftPixelCenter, deltaX, deltaY);
+
+				// Get Color of Ray
+				acUnitRGB += ColorRay(ray, world);
+			}
+			// Normalize and clamp
+			acUnitRGB = glm::clamp(pixelSampleScale * acUnitRGB, 0.f, 0.9999f);
 
 			// Write pixel color to file
-			m_imageWriter->Push(color);
+			m_imageWriter->Push(acUnitRGB);
 		}
 	}
 	std::cout << "DONE!\n";
