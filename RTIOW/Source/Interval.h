@@ -9,7 +9,7 @@ public:
     inline bool Contains(float x) const { return Min <= x && x <= Max; }
     inline bool Surrounds(float x) const { return Min < x && x < Max; }
 
-    static const Interval Front() { return Interval(0.0001f, std::numeric_limits<float>::infinity()); }
+    static const Interval Front() { return Interval(0.001f, std::numeric_limits<float>::infinity()); }
 public:
     float Min, Max;
 };
