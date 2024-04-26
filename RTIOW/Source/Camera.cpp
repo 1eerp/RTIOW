@@ -1,8 +1,8 @@
 #include <iostream>
 #include "Camera.h"
 
-Camera::Camera(const Ref<ImageWriter> writer, glm::vec3 position, glm::vec3 direction, unsigned short sampleCount, float filmHeight, float focalLength)
-	: m_imageWriter(writer), m_sampleCount(sampleCount), m_aspectRatio(static_cast<float>(writer->GetWidth()) / writer->GetHeight()), m_filmHeight(filmHeight), m_filmWidth(m_filmHeight * m_aspectRatio), m_focalLength(focalLength), m_position(position), m_direction(direction)
+Camera::Camera(const Ref<ImageWriter> writer, unsigned short sampleCount, unsigned short maxBounces, glm::vec3 position, glm::vec3 direction, float filmHeight, float focalLength)
+	: m_imageWriter(writer), m_sampleCount(sampleCount), m_maxBounces(maxBounces), m_aspectRatio(static_cast<float>(writer->GetWidth()) / writer->GetHeight()), m_filmHeight(filmHeight), m_filmWidth(m_filmHeight* m_aspectRatio), m_focalLength(focalLength), m_position(position), m_direction(direction)
 {}
 
 Ray Camera::CreateRay(unsigned short i, unsigned short j, glm::vec3& topLeftPixelCenter, glm::vec3& deltaX, glm::vec3 deltaY)
@@ -13,11 +13,18 @@ Ray Camera::CreateRay(unsigned short i, unsigned short j, glm::vec3& topLeftPixe
 	return Ray(m_position, glm::normalize(currentPixelPosition - m_position));
 }
 
-glm::vec3 Camera::ColorRay(const Ray& ray, const Hittable& world)
+glm::vec3 Camera::ColorRay(const Ray& ray, int depth, const Hittable& world)
 {
+	if (depth < 0) return glm::vec3(0.f);
+
 	HitRecord hitRec;
-	if (world.Hit(ray, hitRec))
-		return 0.5f * (hitRec.Normal + glm::vec3(1.f, 1.f, 1.f));
+	//
+	if (world.Hit(ray, hitRec, Interval::Front()))
+	{
+		// [MINOR BUG] : There is a miniscule chance that the randomized normal created is equal to the negation of the normal in hitRec in which case the normal being supplied is {0, 0, 0}
+		glm::vec3 normal = glm::normalize(hitRec.Normal + PRNG::UnitVec3());
+		return 0.5f * ColorRay(Ray(hitRec.HitPosition, normal), depth - 1, world);
+	}
 
 	glm::vec3 unitDirection = glm::normalize(ray.Direction());
 	float a = 0.5f * (unitDirection.y + 1.f);
@@ -59,14 +66,11 @@ void Camera::Render(const Hittable& world)
 
 			for (int sampleIndex = 0; sampleIndex < m_sampleCount; sampleIndex++)
 			{
-				// Update Seed
-				PRNG::UpdateSeed(j * imageWidth * m_sampleCount + i * m_sampleCount + sampleIndex);
-
 				// Create Ray
 				Ray ray = CreateRay(i, j, topLeftPixelCenter, deltaX, deltaY);
 
 				// Get Color of Ray
-				acUnitRGB += ColorRay(ray, world);
+				acUnitRGB += ColorRay(ray, m_maxBounces, world);
 			}
 			// Normalize and clamp
 			acUnitRGB = glm::clamp(pixelSampleScale * acUnitRGB, 0.f, 0.9999f);

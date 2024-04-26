@@ -19,5 +19,15 @@ void ImageWriter::Push(const glm::uvec3& color)
 
 void ImageWriter::Push(const glm::vec3& color)
 {
-	Push(glm::uvec3{ static_cast<unsigned int>(256 * color.r), static_cast<unsigned int>(256 * color.g), static_cast<unsigned int>(256 * color.b) });
+	Push(glm::uvec3{ 
+		static_cast<unsigned int>(256 * GammaCorrect(color.r)),
+		static_cast<unsigned int>(256 * GammaCorrect(color.g)),
+		static_cast<unsigned int>(256 * GammaCorrect(color.b))
+		});
+}
+
+float ImageWriter::GammaCorrect(float component)
+{
+	constexpr float gammaEncodeFactor = 1.f / 2.2f;
+	return powf(component, gammaEncodeFactor);
 }

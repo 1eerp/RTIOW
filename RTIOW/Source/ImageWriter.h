@@ -17,6 +17,9 @@ public:
 	unsigned short GetWidth() const { return m_width; }
 
 private:
+	float GammaCorrect(float color);
+
+private:
 	std::string filePath;
 	std::ofstream file;
 
