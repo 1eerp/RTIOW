@@ -1,5 +1,6 @@
 #include <iostream>
 #include "Camera.h"
+#include "Material.h"
 
 Camera::Camera(const Ref<ImageWriter> writer, unsigned short sampleCount, unsigned short maxBounces, glm::vec3 position, glm::vec3 direction, float filmHeight, float focalLength)
 	: m_imageWriter(writer), m_sampleCount(sampleCount), m_maxBounces(maxBounces), m_aspectRatio(static_cast<float>(writer->GetWidth()) / writer->GetHeight()), m_filmHeight(filmHeight), m_filmWidth(m_filmHeight* m_aspectRatio), m_focalLength(focalLength), m_position(position), m_direction(direction)
@@ -18,12 +19,16 @@ glm::vec3 Camera::ColorRay(const Ray& ray, int depth, const Hittable& world)
 	if (depth < 0) return glm::vec3(0.f);
 
 	HitRecord hitRec;
-	//
 	if (world.Hit(ray, hitRec, Interval::Front()))
 	{
-		// [MINOR BUG] : There is a miniscule chance that the randomized normal created is equal to the negation of the normal in hitRec in which case the normal being supplied is {0, 0, 0}
-		glm::vec3 normal = glm::normalize(hitRec.Normal + PRNG::UnitVec3());
-		return 0.5f * ColorRay(Ray(hitRec.HitPosition, normal), depth - 1, world);
+		Ray scatteredRay;
+		glm::vec3 attenuation;
+		// The material scatters the ray
+		if (hitRec.Material->Scatter(ray, hitRec, attenuation, scatteredRay))
+			return attenuation * ColorRay(scatteredRay, depth - 1, world);
+
+		// Otherwise it absorbs it
+		return glm::vec3(0.f);
 	}
 
 	glm::vec3 unitDirection = glm::normalize(ray.Direction());

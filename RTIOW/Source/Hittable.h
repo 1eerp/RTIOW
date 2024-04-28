@@ -3,21 +3,28 @@
 #include "Interval.h"
 #include "Ray.h"
 
-struct HitRecord {
+class Material;
+
+struct HitRecord
+{
     glm::vec3 HitPosition = { 0.f, 0.f, 0.f };
     glm::vec3 Normal = { 0.f, 0.f, 0.f };
     float T = std::numeric_limits<float>::infinity();
+    Ref<Material> Material;
     bool IsExteriorFace = true;
 };
 
-class Hittable {
+// [POTENTIAL CHANGE] : Current Hittable class does not hold materials since there might be alternatives to "Material" (not sure what those would be)
+class Hittable
+{
 public:
     virtual ~Hittable() = default;
 
     virtual bool Hit(const Ray& ray, HitRecord& record, Interval interval = Interval::Front()) const = 0;
 };
 
-class HittableList : public Hittable {
+class HittableList : public Hittable
+{
 public:
     std::vector<Ref<Hittable>> objects;
 

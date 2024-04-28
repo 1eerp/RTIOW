@@ -28,6 +28,7 @@ bool Sphere::Hit(const Ray& ray, HitRecord& record, Interval interval) const
     record.Normal = (record.HitPosition - m_center) / m_radius;
     record.IsExteriorFace = glm::dot(record.Normal, ray.Direction()) < 0.f;
     record.Normal = record.IsExteriorFace ? record.Normal : -record.Normal;
+    record.Material = m_material;
 
     return true;
 }
