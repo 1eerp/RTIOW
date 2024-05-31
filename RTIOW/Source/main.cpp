@@ -17,13 +17,15 @@ int main()
 	// Create Materials
 	Ref<Lambertian> materialGround = MakeRef<Lambertian>(glm::vec3(0.8f, 0.8f, 0.0f));
 	Ref<Lambertian> materialCenter = MakeRef<Lambertian>(glm::vec3(0.1f, 0.2f, 0.5f));
-	Ref<Metal> materialLeft = MakeRef<Metal>(glm::vec3(0.8f), 0.f);
+	Ref<Dielectric> glass = MakeRef<Dielectric>(1.f/1.5f);
+	Ref<Dielectric> airInsideGlass = MakeRef<Dielectric>(1.5f/1.f);
 	Ref<Metal> materialRight = MakeRef<Metal>(glm::vec3(0.8f, 0.6f, 0.2f), 0.1f);
 
 	// Make and add hittable objects
 	world.Add(MakeRef<Sphere>(materialGround, glm::vec3(0.f, -100.5f, -1.f), 100.f));
-	world.Add(MakeRef<Sphere>(materialCenter, glm::vec3(0.f, 0.f, -2.f), 0.5f));
-	world.Add(MakeRef<Sphere>(materialLeft, glm::vec3(-1.f, 0.f, -1.f), 0.5f));
+	world.Add(MakeRef<Sphere>(materialCenter, glm::vec3(0.f, 0.f, -1.2f), 0.5f));
+	world.Add(MakeRef<Sphere>(glass, glm::vec3(-1.f, 0.f, -1.f), 0.5f)); // Glass
+	world.Add(MakeRef<Sphere>(airInsideGlass, glm::vec3(-1.f, 0.f, -1.f), 0.44f)); // Air inside the Glass
 	world.Add(MakeRef<Sphere>(materialRight, glm::vec3(1.f, 0.f, -1.f), 0.5f));
 	
 	// Image Dimensions
@@ -36,7 +38,7 @@ int main()
 
 	// Renderer/Camera Settings
 	unsigned short maxRayBounce = 10;
-	unsigned short sampleCount = 100;
+	unsigned short sampleCount = 50;
 
 	// CAMREA
 	Camera camera(writer, sampleCount, maxRayBounce, { 0.f, 0.f, 0.f }, { 0.f, 0.f, -1.f });

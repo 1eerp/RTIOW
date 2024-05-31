@@ -20,3 +20,21 @@ bool Metal::Scatter(const Ray& ray, const HitRecord& record, glm::vec3& attenuat
     attenuation = m_albedo;
     return glm::dot(scattered.Direction(), record.Normal) > 0.f;
 }
+
+bool Dielectric::Scatter(const Ray& ray, const HitRecord& record, glm::vec3& attenuation, Ray& scattered) const
+{
+    attenuation = glm::vec3(1.f);
+    float ri = record.IsExteriorFace ? m_indexOfRefraction : (1.f / m_indexOfRefraction);
+
+    glm::vec3 unitDirection = glm::normalize(ray.Direction());
+    float cosTheta = glm::min(glm::dot(-unitDirection, record.Normal), 1.0f);
+    float sinTheta = glm::sqrt(1.f - cosTheta * cosTheta);
+
+    glm::vec3 dir;
+    if (ri * sinTheta > 1.f || Reflectance(cosTheta,ri) > PRNG::Float())
+        dir = Reflect(unitDirection, record.Normal);
+    else
+        dir = Refract(unitDirection, record.Normal, ri);
+    scattered = Ray(record.HitPosition, dir);
+    return true;
+}

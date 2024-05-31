@@ -41,10 +41,5 @@ inline bool VecIsNearZero(const glm::vec3& vec)
 	return (std::fabs(vec[0]) < s) && (std::fabs(vec[1]) < s) && (std::fabs(vec[2]) < s);
 }
 
-inline glm::vec3 Reflect(const glm::vec3& v, const glm::vec3& n)
-{
-	return v - 2.f * dot(v, n) * n;
-}
-
 // UTILITY CLASSES
 #include "PRNG.h"
