@@ -63,7 +63,7 @@ void Camera::Render(const Hittable& world)
 	// Render
 	for (int j = 0; j < imageHeight; ++j) {
 		// PROGRESS INDICATOR 
-		std::cout << "PROGRESS: " << static_cast<float>(1 + j) / imageHeight * 100.f << "%\n";
+		std::cout << "\rPROGRESS: " << static_cast<float>(1 + j) / imageHeight * 100.f << "%";
 
 		for (int i = 0; i < imageWidth; ++i) {
 			// Initialize accumulator for current pixel
@@ -84,6 +84,6 @@ void Camera::Render(const Hittable& world)
 			m_imageWriter->Push(acUnitRGB);
 		}
 	}
-	std::cout << "DONE!\n";
+	std::cout << "\nDONE!\n";
 }
 
