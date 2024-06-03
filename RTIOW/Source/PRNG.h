@@ -10,6 +10,10 @@ public:
 	static float Float();
 	static float Float(float min, float max);
 
+	static glm::vec2 Vec2(float min, float max);
+	static glm::vec2 InUnitCircle();
+	static glm::vec2 UnitVec2();
+
 	static glm::vec3 Vec3(float min, float max);
 	static glm::vec3 InUnitSphere();
 	static glm::vec3 UnitVec3();
