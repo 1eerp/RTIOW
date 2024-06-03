@@ -2,9 +2,12 @@
 #include "Camera.h"
 #include "Material.h"
 
-Camera::Camera(const Ref<ImageWriter> writer, unsigned short sampleCount, unsigned short maxBounces, glm::vec3 position, glm::vec3 direction, float filmHeight, float focalLength)
-	: m_imageWriter(writer), m_sampleCount(sampleCount), m_maxBounces(maxBounces), m_aspectRatio(static_cast<float>(writer->GetWidth()) / writer->GetHeight()), m_filmHeight(filmHeight), m_filmWidth(m_filmHeight* m_aspectRatio), m_focalLength(focalLength), m_position(position), m_direction(direction)
-{}
+Camera::Camera(const Ref<ImageWriter> writer, unsigned short sampleCount, unsigned short maxBounces, float fov, float focalLength, glm::vec3 position, glm::vec3 lookAt, glm::vec3 up)
+	: m_imageWriter(writer), m_sampleCount(sampleCount), m_maxBounces(maxBounces), m_fov(fov), m_aspectRatio(static_cast<float>(writer->GetWidth()) / writer->GetHeight()), m_focalLength(focalLength), m_position(position), m_direction(glm::normalize(lookAt - m_position)), m_up(glm::normalize(up))
+{
+	m_filmHeight = 2 * m_focalLength * static_cast<float>(glm::tan(glm::radians(m_fov / 2.f)));
+	m_filmWidth = m_filmHeight * m_aspectRatio;
+}
 
 Ray Camera::CreateRay(unsigned short i, unsigned short j, glm::vec3& topLeftPixelCenter, glm::vec3& deltaX, glm::vec3 deltaY)
 {
@@ -43,8 +46,11 @@ void Camera::Render(const Hittable& world)
 	int imageHeight = m_imageWriter->GetHeight();
 
 	// Viewport right and down direction, w/ full length
-	glm::vec3 viewportRight(m_filmWidth, 0, 0);
-	glm::vec3 viewportDown(0, -m_filmHeight, 0);
+	glm::vec3 right = glm::normalize(glm::cross(m_up, m_direction));
+	m_up = glm::normalize(glm::cross(m_direction, right));
+
+	glm::vec3 viewportRight = right * m_filmWidth;
+	glm::vec3 viewportDown = -m_up * m_filmHeight;
 
 	// Pixel length and width, directed from top left to bottom right
 	glm::vec3 deltaX = viewportRight / static_cast<float>(imageWidth);

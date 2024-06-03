@@ -4,7 +4,7 @@
 
 class Camera {
 public:
-    Camera(const Ref<ImageWriter> writer, unsigned short sampleCount = 1, unsigned short maxBounces = 1, glm::vec3 position = { 0.f,0.f,0.f }, glm::vec3 direction = { 0.f, 0.f, 1.f }, float filmHeight = 2.f, float focalLength = 1.f);
+    Camera(const Ref<ImageWriter> writer, unsigned short sampleCount = 1, unsigned short maxBounces = 1, float fov = 90.f, float focalLength = 1.f, glm::vec3 position = { 0.f,0.f,0.f }, glm::vec3 lookAt = { 0.f, 0.f, 1.f }, glm::vec3 up = {0.f, 1.f, 0.f});
     
     void Render(const Hittable& world);
 
@@ -14,10 +14,10 @@ private:
 
 private:
     Ref<ImageWriter> m_imageWriter;
-    float m_aspectRatio;
-
     unsigned short m_sampleCount;
     unsigned short m_maxBounces;
+    float m_fov;
+    float m_aspectRatio;
 
     float m_filmHeight;
     float m_filmWidth;
@@ -25,4 +25,5 @@ private:
 
     glm::vec3 m_position;
     glm::vec3 m_direction;
+    glm::vec3 m_up;
 };
