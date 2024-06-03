@@ -25,7 +25,7 @@ int main()
 	world.Add(MakeRef<Sphere>(materialGround, glm::vec3(0.f, -100.5f, 1.f), 100.f));
 	world.Add(MakeRef<Sphere>(materialCenter, glm::vec3(0.f, 0.f, 1.2f), 0.5f));
 	world.Add(MakeRef<Sphere>(glass, glm::vec3(-1.f, 0.f, 1.f), 0.5f)); // Glass
-	world.Add(MakeRef<Sphere>(airInsideGlass, glm::vec3(-1.f, 0.f, 1.f), 0.44f)); // Air inside the Glass
+	world.Add(MakeRef<Sphere>(airInsideGlass, glm::vec3(-1.f, 0.f, 1.f), 0.4f)); // Air inside the Glass
 	world.Add(MakeRef<Sphere>(materialRight, glm::vec3(1.f, 0.f, 1.f), 0.5f));
 	
 	// Image Dimensions
@@ -37,11 +37,14 @@ int main()
 	Ref<ImageWriter> writer = MakeRef<ImageWriter>("output/render.ppm", imageWidth, imageHeight);
 
 	// Renderer/Camera Settings
-	unsigned short maxRayBounce = 10;
-	unsigned short sampleCount = 100;
+	unsigned short maxRayBounce = 7;
+	unsigned short sampleCount = 30;
+	float fov = 20.f;
+	float focusDist = 3.4f;
+	float defocusAngle = 10.f;
 
 	// CAMREA
-	Camera camera(writer, sampleCount, maxRayBounce, 20.f, 1.f, { -2.f, 2.f, -1.f }, { 0.f, 0.f, 1.f });
+	Camera camera(writer, sampleCount, maxRayBounce, fov, focusDist, defocusAngle, { -2.f, 2.f, -1.f }, { 0.f, 0.f, 1.f });
 	
 	// RENDER
 	camera.Render(world);
