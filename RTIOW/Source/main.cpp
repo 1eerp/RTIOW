@@ -15,18 +15,47 @@ int main()
 	HittableList world;
 
 	// Create Materials
-	Ref<Lambertian> materialGround = MakeRef<Lambertian>(glm::vec3(0.8f, 0.8f, 0.0f));
-	Ref<Lambertian> materialCenter = MakeRef<Lambertian>(glm::vec3(0.1f, 0.2f, 0.5f));
-	Ref<Dielectric> glass = MakeRef<Dielectric>(1.f/1.5f);
-	Ref<Dielectric> airInsideGlass = MakeRef<Dielectric>(1.5f/1.f);
-	Ref<Metal> materialRight = MakeRef<Metal>(glm::vec3(0.8f, 0.6f, 0.2f), 1.f);
+	Ref<Lambertian> groundMaterial = MakeRef<Lambertian>(glm::vec3(0.5f, 0.5f, 0.5f));
+	Ref<Dielectric> material1 = MakeRef<Dielectric>(1.f / 1.5f);
+	Ref<Lambertian> material2 = MakeRef<Lambertian>(glm::vec3(0.4f, 0.2f, 0.1f));
+	Ref<Metal> material3 = MakeRef<Metal>(glm::vec3(0.7f, 0.6f, 0.5f), 0.f);
 
-	// Make and add hittable objects
-	world.Add(MakeRef<Sphere>(materialGround, glm::vec3(0.f, -100.5f, 1.f), 100.f));
-	world.Add(MakeRef<Sphere>(materialCenter, glm::vec3(0.f, 0.f, 1.2f), 0.5f));
-	world.Add(MakeRef<Sphere>(glass, glm::vec3(-1.f, 0.f, 1.f), 0.5f)); // Glass
-	world.Add(MakeRef<Sphere>(airInsideGlass, glm::vec3(-1.f, 0.f, 1.f), 0.4f)); // Air inside the Glass
-	world.Add(MakeRef<Sphere>(materialRight, glm::vec3(1.f, 0.f, 1.f), 0.5f));
+	world.Add(MakeRef<Sphere>(groundMaterial, glm::vec3(0.f, -1000.f, 0.f), 1000.f));
+	world.Add(MakeRef<Sphere>(material1, glm::vec3(0.f, 1.f, 0.f), 1.f));
+	world.Add(MakeRef<Sphere>(material2, glm::vec3(-4.f, 1.f, 0.f), 1.f));
+	world.Add(MakeRef<Sphere>(material3, glm::vec3(4.f, 1.f, 0.f), 1.f));
+
+	for (int a = -11; a < 11; a++)
+	{
+		for (int b = -11; b < 11; b++)
+		{
+			float choice = PRNG::Float();
+			glm::vec3 center(a + 0.9f * float(), 0.2f, b + 0.9f * PRNG::Float());
+
+			if (glm::length(center - glm::vec3(4, 0.2, 0.f)) > 0.9f)
+			{
+				Ref<Material> material;
+				glm::vec3 albedo = PRNG::Vec3() * PRNG::Float(0.5f, 1.f);
+				if (choice < 0.8f) {
+					// Lambertian
+					material = MakeRef<Lambertian>(albedo);
+				}
+				else if (choice < 0.95f)
+				{
+					// metal
+					auto fuzz = PRNG::Float(0.f, 0.5f);
+					material = MakeRef<Metal>(albedo, fuzz);
+				}
+				else {
+					// glass
+					material = MakeRef<Dielectric>(1.f / 1.5f);
+				}
+				world.Add(MakeRef<Sphere>(material, center, 0.2f));
+			}
+		}
+	}
+
+
 	
 	// Image Dimensions
 	unsigned short imageWidth = 1280;
@@ -37,14 +66,14 @@ int main()
 	Ref<ImageWriter> writer = MakeRef<ImageWriter>("output/render.ppm", imageWidth, imageHeight);
 
 	// Renderer/Camera Settings
-	unsigned short maxRayBounce = 7;
-	unsigned short sampleCount = 30;
+	unsigned short maxRayBounce = 10;
+	unsigned short sampleCount = 100;
 	float fov = 20.f;
-	float focusDist = 3.4f;
-	float defocusAngle = 10.f;
+	float focusDist = 10.f;
+	float defocusAngle = .6f;
 
 	// CAMREA
-	Camera camera(writer, sampleCount, maxRayBounce, fov, focusDist, defocusAngle, { -2.f, 2.f, -1.f }, { 0.f, 0.f, 1.f });
+	Camera camera(writer, sampleCount, maxRayBounce, fov, focusDist, defocusAngle, { 13.f, 2.f, -3.f }, { 0.f, 0.f, 0.f });
 	
 	// RENDER
 	camera.Render(world);
