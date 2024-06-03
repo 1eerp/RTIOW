@@ -27,6 +27,11 @@ float PRNG::Float(float min, float max)
     return min + (max - min) * Float();
 }
 
+glm::vec2 PRNG::Vec2()
+{
+    return glm::vec2(Float(), Float());
+}
+
 glm::vec2 PRNG::Vec2(float min, float max)
 {
     return glm::vec2(Float(min, max), Float(min, max));
@@ -45,6 +50,11 @@ glm::vec2 PRNG::InUnitCircle()
 glm::vec2 PRNG::UnitVec2()
 {
     return glm::normalize(InUnitSphere());
+}
+
+glm::vec3 PRNG::Vec3()
+{
+    return glm::vec3(Float(), Float(), Float());
 }
 
 glm::vec3 PRNG::Vec3(float min, float max)
