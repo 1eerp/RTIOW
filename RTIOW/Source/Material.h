@@ -15,15 +15,16 @@ inline float Reflectance(float cosine, float ior) {
 
 inline glm::vec3 Reflect(const glm::vec3& v, const glm::vec3& n)
 {
-    return v - 2.f * dot(v, n) * n;
+    // If the v is a unit vector the output should be a unit vector as well, but normalizing it anyway to account for floating point imprecision
+    return glm::normalize(v - 2.f * dot(v, n) * n);
 }
 
-inline glm::vec3 Refract(const glm::vec3& incidentRayDir, const glm::vec3& n, float relativeIOR)
+inline glm::vec3 Refract(const glm::vec3& v, const glm::vec3& n, float relativeIOR)
 {
-    float cosTheta = -glm::dot(incidentRayDir, n);
-    glm::vec3 perp = relativeIOR * (incidentRayDir + cosTheta * n);
+    float cosTheta = -glm::dot(v, n);
+    glm::vec3 perp = relativeIOR * (v + cosTheta * n);
     glm::vec3 par = -glm::sqrt(std::fabs(1.f - glm::dot(perp, perp))) * n;
-    return perp + par;
+    return glm::normalize(perp + par);
 }
 
 
