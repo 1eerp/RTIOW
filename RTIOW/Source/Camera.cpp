@@ -1,9 +1,12 @@
 #include <iostream>
+#include <thread>
+#include <mutex>
 #include "Camera.h"
 #include "Material.h"
+#include "ScopedTimer.h"
 
 Camera::Camera(const Ref<ImageWriter> writer, unsigned short sampleCount, unsigned short maxBounces, float fov, float focalDist, float defocusAngle, glm::vec3 position, glm::vec3 lookAt, glm::vec3 up)
-	: m_imageWriter(writer), m_sampleCount(sampleCount), m_maxBounces(maxBounces), m_fov(fov), m_aspectRatio(static_cast<float>(writer->GetWidth()) / writer->GetHeight()), m_focusDist(focalDist), m_defocusAngle(defocusAngle), m_position(position), m_direction(glm::normalize(lookAt - m_position)), m_up(glm::normalize(up))
+	: m_imageWriter(writer), m_sampleCount(sampleCount), m_maxBounces(maxBounces), m_sampleWeight(1.f / sampleCount), m_fov(fov), m_aspectRatio(static_cast<float>(writer->GetWidth()) / writer->GetHeight()), m_focusDist(focalDist), m_defocusAngle(defocusAngle), m_position(position), m_direction(glm::normalize(lookAt - m_position)), m_up(glm::normalize(up)), m_tileSizeX(32), m_tileSizeY(32), m_tileCountX(static_cast<unsigned int>(glm::ceil(static_cast<float>(m_imageWriter->GetWidth()) / m_tileSizeX))), m_tileCountY(static_cast<unsigned int>(glm::ceil(static_cast<float>(m_imageWriter->GetHeight()) / m_tileSizeY)))
 {
 	// Width and Height of the focus plane
 	m_focusPlaneHeight = 2 * m_focusDist * static_cast<float>(glm::tan(glm::radians(m_fov / 2.f)));
@@ -66,13 +69,11 @@ void Camera::Render(const Hittable& world)
 	const int imageWidth = m_imageWriter->GetWidth();
 	const int imageHeight = m_imageWriter->GetHeight();
 
-	// Weight of each sample holds
-	float pixelSampleScale = 1.f / m_sampleCount;
-
 	std::cout << std::fixed;
 	std::cout.precision(3);
 	std::cout << "Rendering...\n";
 
+	ScopedTimer timer("Normal Renderer & Writer");
 	// Render
 	for (int j = 0; j < imageHeight; ++j) {
 
@@ -89,7 +90,7 @@ void Camera::Render(const Hittable& world)
 				acUnitRGB += ColorRay(ray, m_maxBounces, world);
 			}
 			// Normalize and clamp
-			acUnitRGB = glm::clamp(pixelSampleScale * acUnitRGB, 0.f, 0.9999f);
+			acUnitRGB = glm::clamp(m_sampleWeight * acUnitRGB, 0.f, 0.9999f);
 
 			// Write pixel color to file
 			m_imageWriter->Push(acUnitRGB);
@@ -101,3 +102,62 @@ void Camera::Render(const Hittable& world)
 	std::cout << "\nDONE!\n";
 }
 
+void Camera::RenderTiled(const Hittable& world)
+{
+	unsigned int x, y, startX, maxX, maxY, tileIndex, tileCount = m_tileCountX * m_tileCountY;
+
+	// Atomically retreive and increment the tileIndex, so when multithreading each thread works on a new unique tileIndex
+	while ((tileIndex = m_atomicTileIndex++) < tileCount)
+	{
+		// Get the starting x and y pixel for this tile
+		y = (tileIndex / m_tileCountX) * m_tileSizeY;
+		startX = (tileIndex % m_tileCountX) * m_tileSizeX;
+
+		// If tile is in last row or column make sure the tile size is decreased if necessary
+		maxY = glm::min(m_imageWriter->GetHeight(), y + m_tileSizeY);
+		maxX = glm::min(m_imageWriter->GetWidth(), startX + m_tileSizeX);
+
+		for (; y < maxY; ++y) {
+
+			for (x = startX; x < maxX; ++x) {
+				// Retreive the backing memory for the pixel, and accumulator for current pixel
+				glm::vec3& acUnitRGB = m_imageWriter->GetDataElementRef(y, x);
+
+				for (int sampleIndex = 0; sampleIndex < m_sampleCount; sampleIndex++)
+				{
+					// Create Ray
+					Ray ray = CreateRay(x, y);
+
+					// Compute color pixel color and accumulate in the corresponding backing memory
+					acUnitRGB += ColorRay(ray, m_maxBounces, world);
+				}
+				// Normalize the accumulated color and clamp it
+				acUnitRGB = glm::clamp(m_sampleWeight * acUnitRGB, 0.f, 0.9999f);
+			}
+		}
+
+		{
+			// Progress Indicator
+			std::lock_guard op(m_progressMutex);
+			std::cout << "\rTiles Rendered: " << ++m_tilesRendered << '/' << tileCount;
+		}
+	}
+}
+
+void Camera::RenderMultithreaded(const Hittable& world)
+{
+	std::cout << std::fixed;
+	std::cout.precision(3);
+	std::cout << "Rendering...\n";
+
+	{
+		ScopedTimer timer("MT Renderer");
+		unsigned int workerCount = glm::min(4U, std::thread::hardware_concurrency() / 2U);
+		std::vector<std::jthread> workers;
+		workers.reserve(workerCount);
+		for (unsigned int i = 0; i < workerCount; ++i)
+			workers.push_back(std::jthread(&Camera::RenderTiled, this, std::ref(world)));
+	}
+	ScopedTimer timer("ImageWriter");
+	m_imageWriter->SaveData();
+}

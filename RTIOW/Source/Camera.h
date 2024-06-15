@@ -7,6 +7,8 @@ public:
     Camera(const Ref<ImageWriter> writer, unsigned short sampleCount = 1, unsigned short maxBounces = 1, float fov = 90.f, float focalDist = 1.f, float defocusAngle = 0.f, glm::vec3 position = { 0.f,0.f,0.f }, glm::vec3 lookAt = { 0.f, 0.f, 1.f }, glm::vec3 up = {0.f, 1.f, 0.f});
     
     void Render(const Hittable& world);
+    void RenderTiled(const Hittable& world);
+    void RenderMultithreaded(const Hittable& world);
 
 private:
     Ray CreateRay(unsigned short i, unsigned short j);
@@ -19,6 +21,7 @@ private:
     // Sampling Quality
     unsigned short m_sampleCount;
     unsigned short m_maxBounces;
+    float m_sampleWeight;
 
     // Camera Settings
     float m_fov;
@@ -40,4 +43,15 @@ private:
     glm::vec3 m_direction;
     glm::vec3 m_up;
     // [TODO] Add right vector and update functions for orientation that require roll
+
+    // Tiled Rendering Help
+    const unsigned short m_tileSizeX;
+    const unsigned short m_tileSizeY;
+    const unsigned short m_tileCountX;
+    const unsigned short m_tileCountY;
+
+    // Multithreading helpers
+    std::atomic<unsigned short> m_atomicTileIndex;
+    std::mutex m_progressMutex;
+    unsigned short m_tilesRendered = 0;
 };

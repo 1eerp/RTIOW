@@ -1,7 +1,7 @@
 #include <chrono>
 #include <iostream>
 #include "RTIOW.h"
-
+#include <thread>
 
 int main()
 {
@@ -55,18 +55,15 @@ int main()
 		}
 	}
 
-
-	
 	// Image Dimensions
 	unsigned short imageWidth = 1280;
 	unsigned short imageHeight = 720;
-	float aspectRatio = static_cast<float>(imageWidth) / imageHeight;
 
 	// IMAGE WRITER
 	Ref<ImageWriter> writer = MakeRef<ImageWriter>("output/render.ppm", imageWidth, imageHeight);
 
 	// Renderer/Camera Settings
-	unsigned short maxRayBounce = 10;
+	unsigned short maxRayBounce = 7;
 	unsigned short sampleCount = 100;
 	float fov = 20.f;
 	float focusDist = 10.f;
@@ -76,5 +73,8 @@ int main()
 	Camera camera(writer, sampleCount, maxRayBounce, fov, focusDist, defocusAngle, { 13.f, 2.f, -3.f }, { 0.f, 0.f, 0.f });
 	
 	// RENDER
-	camera.Render(world);
+	// ST
+	// camera.Render(world);
+	// MT
+	camera.RenderMultithreaded(world);
 }
