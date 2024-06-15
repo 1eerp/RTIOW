@@ -22,5 +22,5 @@ public:
 	static glm::vec3 OnHemisphere(glm::vec3& normal);
 
 private:
-	static unsigned int s_state;
+	thread_local static unsigned int s_state;
 };

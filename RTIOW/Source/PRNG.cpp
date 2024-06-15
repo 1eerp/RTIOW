@@ -1,6 +1,6 @@
 #include "PRNG.h"
 
-unsigned int PRNG::s_state = 1;
+thread_local unsigned int PRNG::s_state = 1;
 
 void PRNG::SetSeed(unsigned int seed)
 {
